@@ -134,6 +134,21 @@ const postList = async (req, res) => {
   res.status(201).json({ data: listInfo });
 };
 
+const userPost = async (req, res) => {
+  const { id } = req.body.data;
+
+  const listInfo = await myDataSource.query(`SELECT
+  postings.user_id,
+  users.profile_image,
+  posting_images.posting_id,
+  posting_images.image_url,
+  postings.contents
+  FROM users, posting_images
+  INNER JOIN postings ON ${id} = postings.user_id`);
+
+  res.status(201).json({ data: listInfo });
+};
+
 /*-----------------------------------------------------------------------------------------*/
 // typeorm없이 더미데이터를 활용해서 작성한 함수 ****
 
@@ -219,23 +234,23 @@ const removePost = (req, res) => {
   res.status(200).json({ message: "postingDeleted" });
 };
 
-const userPost = (req, res) => {
-  //posts데이터에서 조회하고 싶은 Id로 조회후 데이터를 리턴하는 함수
-  const { id } = req.body.data;
+// const userPost = (req, res) => {
+//   //posts데이터에서 조회하고 싶은 Id로 조회후 데이터를 리턴하는 함수
+//   const { id } = req.body.data;
 
-  const findUser = users.filter((user) => id === user.id);
-  // console.log(findUser);
+//   const findUser = users.filter((user) => id === user.id);
+//   // console.log(findUser);
 
-  const userPostInfo = posts.filter((post) => id === post.userId);
+//   const userPostInfo = posts.filter((post) => id === post.userId);
 
-  const result = {
-    userId: id,
-    userName: findUser[0].name,
-    postings: userPostInfo,
-  };
+//   const result = {
+//     userId: id,
+//     userName: findUser[0].name,
+//     postings: userPostInfo,
+//   };
 
-  res.status(200).json({ message: "success", data: result });
-};
+//   res.status(200).json({ message: "success", data: result });
+// };
 
 app.get("/", (req, res) => {
   res.json({ message: "hi 연결했다 자식아" });
