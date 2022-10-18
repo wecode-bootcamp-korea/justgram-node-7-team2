@@ -49,11 +49,11 @@ const addPost = async (req, res) => {
 const postList = async (req, res) => {
   //게시글 Read1
   const listInfo = await myDataSource.query(`SELECT
-  postings.user_id,
-  users.profile_image,
-  posting_images.posting_id,
-  posting_images.image_url,
-  postings.contents
+  users.id as userId,
+  users.profile_image as userProfileImage,
+  postings.id as postingId,
+  posting_images.image_url userProfileUrl,
+  postings.contents as postingContent
   FROM users, postings, posting_images
   WHERE users.id = postings.user_id && postings.id = posting_images.posting_id`);
 
@@ -82,8 +82,8 @@ app.get("/", (req, res) => {
 app.post("/signup", createUser);
 app.post("/addpost", addPost);
 app.get("/postlist", postList);
-app.patch("/postchange", postChange);
-app.delete("/removepost", removePost);
+// app.patch("/postchange", postChange);
+// app.delete("/removepost", removePost);
 app.get("/userpostinfo", userPost);
 
 const server = http.createServer(app);
