@@ -75,7 +75,7 @@ const userPost = async (req, res) => {
 
   res.status(201).json({ data: listInfo });
 };
-
+//게시글 정보 수정 CRUD중 UPDATE 부분
 const postChange = async (req, res) => {
   const { id, postingId, content } = req.body.data;
   const postChange = await myDataSource.query(`
@@ -96,6 +96,17 @@ const postChange = async (req, res) => {
   res.status(201).json({ data: postChangeInfo });
 };
 
+const removePost = async (req, res) => {
+  const { id, postingId } = req.body.data;
+
+  const removePost = myDataSource.query(`
+    DELETE FROM postings
+    WHERE user_id = ${id} && id = ${postingId}
+  `);
+
+  res.status(200).json({ message: "postingDeleted" });
+};
+
 app.get("/", (req, res) => {
   res.json({ message: "success" });
 });
@@ -104,7 +115,7 @@ app.post("/signup", createUser);
 app.post("/addpost", addPost);
 app.get("/postlist", postList);
 app.patch("/postchange", postChange);
-// app.delete("/removepost", removePost);
+app.delete("/removepost", removePost);
 app.get("/userpostinfo", userPost);
 
 const server = http.createServer(app);
