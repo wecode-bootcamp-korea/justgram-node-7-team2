@@ -60,6 +60,7 @@ const postList = async (req, res) => {
   res.status(201).json({ data: listInfo });
 };
 
+//read2 문제 한명의 유저가 작성한 게시글 조회 함수 나중에 하기
 const userPost = async (req, res) => {
   const { id } = req.body.data;
 
@@ -75,6 +76,26 @@ const userPost = async (req, res) => {
   res.status(201).json({ data: listInfo });
 };
 
+const postChange = async (req, res) => {
+  const { id, postingId, content } = req.body.data;
+  const postChange = await myDataSource.query(`
+    UPDATE postings SET contents = "${content}" WHERE user_id = ${id} && id = ${postingId}
+  `);
+
+  // console.log(postChange);
+  const postChangeInfo = await myDataSource.query(`
+    SELECT
+    users.id as userId,
+    users.nickname as userName,
+    postings.id as postingId,
+    postings.title as postingTitle,
+    postings.contents as postingContent
+    FROM users, postings
+    WHERE users.id = ${id} && postings.id = ${postingId}
+  `);
+  res.status(201).json({ data: postChangeInfo });
+};
+
 app.get("/", (req, res) => {
   res.json({ message: "success" });
 });
@@ -82,7 +103,7 @@ app.get("/", (req, res) => {
 app.post("/signup", createUser);
 app.post("/addpost", addPost);
 app.get("/postlist", postList);
-// app.patch("/postchange", postChange);
+app.patch("/postchange", postChange);
 // app.delete("/removepost", removePost);
 app.get("/userpostinfo", userPost);
 
