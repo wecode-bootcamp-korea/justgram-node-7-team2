@@ -95,7 +95,7 @@ const postChange = async (req, res) => {
   `);
   res.status(201).json({ data: postChangeInfo });
 };
-
+//유저가 작성한 해당 게시물 삭제 함수 CRUD중 DELETE 부분
 const removePost = async (req, res) => {
   const { id, postingId } = req.body.data;
 
