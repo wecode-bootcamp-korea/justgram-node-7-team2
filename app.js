@@ -108,6 +108,18 @@ const createUser = async (req, res) => {
   res.status(200).json({ message: "userCreated" });
 };
 
+const addPost = async (req, res) => {
+  //게시글 Create
+
+  const { user_id, content } = req.body.data;
+
+  const postInfo = await myDataSource.query(
+    `INSERT INTO postings (user_id, contents) VALUES ('${user_id}', '${content}')`
+  );
+  console.log(postInfo);
+  res.status(200).json({ message: "postCreated" });
+};
+
 /*-----------------------------------------------------------------------------------------*/
 // typeorm없이 더미데이터를 활용해서 작성한 함수 ****
 
@@ -126,20 +138,20 @@ const createUser = async (req, res) => {
 //   res.status(200).json({ message: "userCreated" });
 // };
 
-const addPost = (req, res) => {
-  //게시글 등록하기 함수
-  const { title, content } = req.body.data;
+// const addPost = (req, res) => {
+//   //게시글 등록하기 함수
+//   const { title, content } = req.body.data;
 
-  posts.push({
-    id: posts.length + 1,
-    title: title,
-    content: content,
-    userId: 1,
-  });
+//   posts.push({
+//     id: posts.length + 1,
+//     title: title,
+//     content: content,
+//     userId: 1,
+//   });
 
-  // console.log("나는 포스트입니다:" + posts);
-  res.statue(201).json({ message: "postCreated" }); //201 생성 성공
-};
+//   // console.log("나는 포스트입니다:" + posts);
+//   res.statue(201).json({ message: "postCreated" }); //201 생성 성공
+// };
 
 const postList = (req, res) => {
   //다른 방식 찾아보기
