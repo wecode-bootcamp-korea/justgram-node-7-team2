@@ -120,6 +120,20 @@ const addPost = async (req, res) => {
   res.status(200).json({ message: "postCreated" });
 };
 
+const postList = async (req, res) => {
+  //게시글 Read1
+  const listInfo = await myDataSource.query(`SELECT
+  postings.user_id,
+  users.profile_image,
+  posting_images.posting_id,
+  posting_images.image_url,
+  postings.contents
+  FROM users, postings, posting_images
+  WHERE users.id = postings.user_id && postings.id = posting_images.posting_id`);
+
+  res.status(201).json({ data: listInfo });
+};
+
 /*-----------------------------------------------------------------------------------------*/
 // typeorm없이 더미데이터를 활용해서 작성한 함수 ****
 
@@ -153,24 +167,24 @@ const addPost = async (req, res) => {
 //   res.statue(201).json({ message: "postCreated" }); //201 생성 성공
 // };
 
-const postList = (req, res) => {
-  //다른 방식 찾아보기
-  //게시글 목록 조회하기 함수
-  const newPosts = posts.map((post) => {
-    //배열안에 객체로 이루어져서 요소하나씩 map으로 접근한다.
-    const user = users.find((user) => post.userId === user.id); //users의 Id 값을 find로 찾아 비교한후 그 값을 user에 저장한다.
-    console.log(user);
-    return {
-      userID: post.userId,
-      userName: user.name,
-      postingId: post.id,
-      postingTitle: post.title,
-      postingContent: post.content,
-    };
-  });
+// const postList = (req, res) => {
+//   //다른 방식 찾아보기
+//   //게시글 목록 조회하기 함수
+//   const newPosts = posts.map((post) => {
+//     //배열안에 객체로 이루어져서 요소하나씩 map으로 접근한다.
+//     const user = users.find((user) => post.userId === user.id); //users의 Id 값을 find로 찾아 비교한후 그 값을 user에 저장한다.
+//     console.log(user);
+//     return {
+//       userID: post.userId,
+//       userName: user.name,
+//       postingId: post.id,
+//       postingTitle: post.title,
+//       postingContent: post.content,
+//     };
+//   });
 
-  res.status(201).json({ data: newPosts });
-};
+//   res.status(201).json({ data: newPosts });
+// };
 
 const postChange = (req, res) => {
   // const id = 1;
