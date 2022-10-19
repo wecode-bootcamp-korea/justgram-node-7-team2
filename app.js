@@ -72,14 +72,40 @@ const createUser = async (req, res) => {
 
 const addPost = async (req, res) => {
   //게시글 Create
+  try {
+    const { user_id, title, content } = req.body.data;
 
-  const { user_id, content } = req.body.data;
+    // 1. users 테이블에 존재하는 즉 회원가입한 사람만 포스팅을 할 수 있게 한다.
+    const userInfo = await myDataSource.query(`SELECT * FROM users`);
+    // console.log(userInfo[0].id);
+    // userInfo.map((user) => {
+    //   if (user_id !== user.id) {
+    //     throw new Error("sign up");
+    //   }
+    // });
+    for (let i = 0; i < userInfo.length; i++) {
+      if (userInfo[i].id === user_id) {
+      } else {
+        throw new Error("sign up");
+      }
+    }
+    // 2.title & content 내용이 없을때
+    const REQUIRED_KEYS = [title, content];
+    REQUIRED_KEYS.map((key) => {
+      if (key === "undefined") {
+        throw new Error("posting invalid");
+      }
+    });
 
-  const postInfo = await myDataSource.query(
-    `INSERT INTO postings (user_id, contents) VALUES ('${user_id}', '${content}')`
-  );
-  console.log(postInfo);
-  res.status(200).json({ message: "postCreated" });
+    const postInfo = await myDataSource.query(
+      `INSERT INTO postings (user_id, title, contents) VALUES ('${user_id}', '${title}', '${content}')`
+    );
+    console.log(postInfo);
+    res.status(200).json({ message: "postCreated" });
+  } catch (err) {
+    console.log(err); //터미널에서 확인하는 용도
+    res.status(400).json({ message: err.message });
+  }
 };
 
 const postList = async (req, res) => {
