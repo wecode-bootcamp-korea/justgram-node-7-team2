@@ -28,19 +28,33 @@ const createUser = async (req, res) => {
     let { email, nickname, password, profile_image, phoneNumber } =
       req.body.data;
 
-    const REQUIRED_KEYS = [
+    // const REQUIRED_KEYS = [
+    //   email,
+    //   nickname,
+    //   password,
+    //   profile_image,
+    //   phoneNumber,
+    // ];
+
+    const REQUIRED_KEYS = {
       email,
       nickname,
       password,
       profile_image,
       phoneNumber,
-    ];
-    REQUIRED_KEYS.map((key) => {
-      if (key.length === 0) {
-        // !key도 가능
-        throw new Error("KEY_ERROR");
+    };
+    // REQUIRED_KEYS.map((key) => {
+    //   if (key.length === 0) {
+    //     // !key도 가능
+    //     throw new Error(`KEY_ERROR`);
+    //   }
+    // });
+    Object.keys(REQUIRED_KEYS).flatMap((key) => {
+      if (!REQUIRED_KEYS[key]) {
+        throw new Error(`KEY_ERROR: ${key}`);
       }
     });
+
     if (!email.includes("@") || !email.includes(".")) {
       // 이메일에 @ or . 이 포함되지 않으면 error를 날린다.
       throw new Error("Email-Invalid"); // throw new Error가 자세히 어떻게 동작이 되는지?
@@ -55,6 +69,14 @@ const createUser = async (req, res) => {
     if (password.includes(frontNum || backNum)) {
       // 핸드폰 번호가 비밀번호에 포함되어있을때 error 발생
       throw new Error("Phone number is included in the password");
+    }
+
+    //이미 DB에 존재하는 Email로는 가입할 수 없음
+    const mailInfo = await myDataSource.query(
+      `SELECT * FROM users WHERE email = "${email}"`
+    );
+    if (mailInfo) {
+      throw new Error("Can't sign up already exists email");
     }
 
     const userInfo = await myDataSource.query(
@@ -76,18 +98,11 @@ const addPost = async (req, res) => {
     const { user_id, title, content } = req.body.data;
 
     // 1. users 테이블에 존재하는 즉 회원가입한 사람만 포스팅을 할 수 있게 한다.
-    const userInfo = await myDataSource.query(`SELECT * FROM users`);
-    // console.log(userInfo[0].id);
-    // userInfo.map((user) => {
-    //   if (user_id !== user.id) {
-    //     throw new Error("sign up");
-    //   }
-    // });
-    for (let i = 0; i < userInfo.length; i++) {
-      if (userInfo[i].id === user_id) {
-      } else {
-        throw new Error("sign up");
-      }
+    const userInfo = await myDataSource.query(
+      `SELECT * FROM users WHERE id = ${user_id}`
+    );
+    if (!userInfo) {
+      throw new Error("sign up");
     }
     // 2.title & content 내용이 없을때
     const REQUIRED_KEYS = [title, content];
@@ -100,10 +115,13 @@ const addPost = async (req, res) => {
     const postInfo = await myDataSource.query(
       `INSERT INTO postings (user_id, title, contents) VALUES ('${user_id}', '${title}', '${content}')`
     );
-    console.log(postInfo);
+    // console.log(postInfo);
     res.status(200).json({ message: "postCreated" });
   } catch (err) {
     console.log(err); //터미널에서 확인하는 용도
+    if (err.code === "ER_NO_REFERENCED_ROW_2") {
+      res.status(400).json({ message: "YOU NEED SIGN UP" });
+    }
     res.status(400).json({ message: err.message });
   }
 };
