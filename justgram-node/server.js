@@ -32,8 +32,7 @@ app.post("/join", async (req, res) => {
 
         // 0. 꼭 요구되는 필수값이 빠지지는 않았는지 체크
         const REQUIRED_KEYS = { email, password, nickname, profileImage, phone_number };
-
-        REQUIRED_KEYS.map((key) => {
+        Object.keys(REQUIRED_KEYS).map((key) => {
             if (!key) {
                 throw new Error("KEY_ERROR");
             }
@@ -69,11 +68,11 @@ app.post("/join", async (req, res) => {
         await myDataSource.query(`SELECT id, email FROM users WHERE email = '${email}'`);
         // 3-2) email UNIQUE -> db가 자동으로 중복 이메일 걸러줌 (email 에 유니크 걸기)
         // 인서트로 정보를 넣어보고 빠꾸먹으면 시도했다는 흔적이 남아서 시도한 횟수만큼 id 값이 비어있음
-        await myDataSource.query(
-            `INSERT INTO users (name, email, password, profile_image)
-            VALUES
-            ('${nickname}', '${email}', '${password}', '${profileImage}')`
-        );
+        // await myDataSource.query(
+        //     `INSERT INTO users (nickname, email, password, profile_image)
+        //     VALUES
+        //     ('${nickname}', '${email}', '${password}', '${profileImage}')`
+        // );
         // ********* bcrypt 암호화. (위치 = 디비에 인서트 하기 전에 함) ************
         // console.log("before :", password);
         const hashedPw = bcrypt.hashSync(password, bcrypt.genSaltSync());
