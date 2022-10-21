@@ -49,7 +49,7 @@ const createUser = async (req, res) => {
     //     throw new Error(`KEY_ERROR`);
     //   }
     // });
-    Object.keys(REQUIRED_KEYS).flatMap((key) => {
+    Object.keys(REQUIRED_KEYS).Map((key) => {
       if (!REQUIRED_KEYS[key]) {
         throw new Error(`KEY_ERROR: ${key}`);
       }
@@ -128,6 +128,7 @@ const addPost = async (req, res) => {
 
 const postList = async (req, res) => {
   //게시글 Read1
+
   const listInfo = await myDataSource.query(`SELECT
   users.id as userId,
   users.profile_image as userProfileImage,
@@ -157,34 +158,59 @@ const userPost = async (req, res) => {
 };
 //게시글 정보 수정 CRUD중 UPDATE 부분
 const postChange = async (req, res) => {
-  const { id, postingId, content } = req.body.data;
-  const postChange = await myDataSource.query(`
-    UPDATE postings SET contents = "${content}" WHERE user_id = ${id} && id = ${postingId}
-  `);
+  try {
+    const { id, postingId, content } = req.body.data;
 
-  // console.log(postChange);
-  const postChangeInfo = await myDataSource.query(`
-    SELECT
-    users.id as userId,
-    users.nickname as userName,
-    postings.id as postingId,
-    postings.title as postingTitle,
-    postings.contents as postingContent
-    FROM users, postings
-    WHERE users.id = ${id} && postings.id = ${postingId}
-  `);
-  res.status(201).json({ data: postChangeInfo });
+    const REQUIRED_KEYS = { id, postingId, content };
+
+    Object.keys(REQUIRED_KEYS).Map((key) => {
+      if (!REQUIRED_KEYS[key]) {
+        throw new Error(`KEY_ERROR: ${key}`);
+      }
+    });
+
+    const postChange = await myDataSource.query(`
+      UPDATE postings SET contents = "${content}" WHERE user_id = ${id} && id = ${postingId}
+    `);
+
+    // console.log(postChange);
+    const postChangeInfo = await myDataSource.query(`
+      SELECT
+      users.id as userId,
+      users.nickname as userName,
+      postings.id as postingId,
+      postings.title as postingTitle,
+      postings.contents as postingContent
+      FROM users, postings
+      WHERE users.id = ${id} && postings.id = ${postingId}
+    `);
+
+    res.status(201).json({ data: postChangeInfo });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 };
 //유저가 작성한 해당 게시물 삭제 함수 CRUD중 DELETE 부분
 const removePost = async (req, res) => {
-  const { id, postingId } = req.body.data;
+  try {
+    const { id, postingId } = req.body.data;
 
-  const removePost = myDataSource.query(`
+    const REQUIRED_KEYS = { id, postingId };
+
+    Object.keys(REQUIRED_KEYS).Map((key) => {
+      if (!REQUIRED_KEYS[key]) {
+        throw new Error(`KEY_ERROR: ${key}`);
+      }
+    });
+    const removePost = myDataSource.query(`
     DELETE FROM postings
     WHERE user_id = ${id} && id = ${postingId}
   `);
 
-  res.status(200).json({ message: "postingDeleted" });
+    res.status(200).json({ message: "postingDeleted" });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 };
 
 app.get("/", (req, res) => {
