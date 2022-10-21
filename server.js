@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 const bcrypt = require("bcryptjs"); // 암호화 모듈 리콰이어
 const jwt = require("jsonwebtoken"); // 토큰 발급
+const jwtSecret = process.env.JWT_SECRET;
 
 const { DataSource } = require("typeorm");
 
@@ -53,7 +54,7 @@ const createUser = async (req, res) => {
       phoneNumber,
     };
 
-    Object.keys(REQUIRED_KEYS).flatMap((key) => {
+    Object.keys(REQUIRED_KEYS).map((key) => {
       if (!REQUIRED_KEYS[key]) {
         throw new Error(`KEY_ERROR: ${key}`);
       }
@@ -83,7 +84,7 @@ const createUser = async (req, res) => {
     //   throw new Error("Can't sign up already exists email");
     // }
 
-    const salt = bcrypt.genSaltSync(10);
+    const salt = bcrypt.genSaltSync();
 
     const hashedPw = bcrypt.hashSync(password, salt);
 
@@ -107,73 +108,97 @@ const createUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body.data;
-
+    //1. key error check
+    //2. email, password validation
+    //3. user existence check
+    //4. password isSame
     const REQUIRED_KEYS = {
       email,
       password,
     };
-
-    Object.keys(REQUIRED_KEYS).flatMap((key) => {
+    Object.keys(REQUIRED_KEYS).map((key) => {
       if (!REQUIRED_KEYS[key]) {
         throw new Error(`KEY_ERROR: ${key}`);
       }
     });
-
-    //email이 존재하는지 확인하고 없으면 userDoesNotExist 에러 메시지를 보냄
-    const userInfo = myDataSource.query(`
-    SELECT * FROM users 
-    WHERE email ="${email}"`);
-    console.log(userInfo);
-    if (!userInfo) {
-      throw new Error("userDoesNotExist");
+    if (!email.includes("@") || !email.includes(".")) {
+      // 이메일에 @ or . 이 포함되지 않으면 error를 날린다.
+      throw new Error("Email-Invalid"); // throw new Error가 자세히 어떻게 동작이 되는지?
+    }
+    if (password.length < 10) {
+      //비밀번호가 10자리 이상만 가능 아니면 error 날림
+      throw new Error("Password-Invalid");
     }
 
-    const loginInfo = myDataSource.query(`
-    SELECT id FROM users 
+    //email이 존재하는지 확인하고 없으면 userDoesNotExist 에러 메시지를 보냄
+    const [userInfo] = await myDataSource.query(`
+    SELECT * FROM users 
     WHERE email ="${email}"`);
+
+    if (!userInfo) {
+      const error = new Error("userDoesNotExist");
+      error.statusCode = 404;
+      throw error;
+      // 위에 코드와 같은 방식이다!!!!!!!!!!!
+      // throw new Error("userDoesNotExist");
+    }
+
+    //password isSame using compare method in bcrypt
+    const isSame = bcrypt.compareSync(password, userInfo.password);
+    if (!isSame) {
+      const error = new Error("INVALID_PASSWORD");
+      error.statusCode = 400;
+      throw error;
+    }
+    // console.log(userInfo.id);
     const token = jwt.sign(
-      { loginInfo, iat: Math.floor(Date.now() / 1000) - 30 },
-      "seonghee"
+      { id: userInfo.id, iat: Math.floor(Date.now() / 1000) - 30 },
+      jwtSecret
     );
     // console.log(loginInfo);
 
     res.status(200).json({ message: "loginSuccess", token: token });
-  } catch {
-    res.status(404).json({ message: err.message });
+  } catch (err) {
+    console.log(err);
+    res.status(err.statusCode).json({ message: err.message });
   }
 };
 
 const addPost = async (req, res) => {
   //게시글 Create
   try {
-    const { user_id, title, content } = req.body.data;
-
-    // 1. users 테이블에 존재하는 즉 회원가입한 사람만 포스팅을 할 수 있게 한다.
-    const userInfo = await myDataSource.query(
-      `SELECT * FROM users WHERE id = ${user_id}`
-    );
-    if (!userInfo) {
-      throw new Error("sign up");
-    }
-    // 2.title & content 내용이 없을때
-    const REQUIRED_KEYS = [title, content];
-    REQUIRED_KEYS.map((key) => {
-      if (key === "undefined") {
-        throw new Error("posting invalid");
+    const { token } = req.headers;
+    const { title, content } = req.body.data; //receive data from client : title content
+    const REQUIRED_KEYS = { title, content };
+    Object.keys(REQUIRED_KEYS).map((key) => {
+      if (!REQUIRED_KEYS[key]) {
+        const error = new Error(`KEY_ERROR: ${key}`);
+        error.statusCode = 400;
+        throw error;
       }
     });
+    //get token from header
+    if (!token) {
+      const error = new Error("LOGIN_REQUIRED");
+      error.statusCode = 401; //unauthorized
+      throw error;
+    }
+    //if token ==> jwt.verify
+    const user = jwt.verify(token, jwtSecret);
+    const user_id = user.id;
 
-    const postInfo = await myDataSource.query(
-      `INSERT INTO postings (user_id, title, contents) VALUES ('${user_id}', '${title}', '${content}')`
-    );
-    // console.log(postInfo);
+    await myDataSource.query(`
+    INSERT INTO postings (title, contents, user_id)
+    VALUES ("${title}", "${content}", "${user_id}")
+    `);
+
     res.status(200).json({ message: "postCreated" });
   } catch (err) {
     // console.log(err); //터미널에서 확인하는 용도
     if (err.code === "ER_NO_REFERENCED_ROW_2") {
       res.status(400).json({ message: "YOU NEED SIGN UP" });
     }
-    res.status(400).json({ message: err.message });
+    res.status(err.statusCode).json({ message: err.message });
   }
 };
 
@@ -269,7 +294,7 @@ app.get("/", (req, res) => {
 });
 
 app.post("/signup", createUser);
-app.get("/login", loginUser);
+app.post("/login", loginUser);
 app.post("/addpost", addPost);
 app.get("/postlist", postList);
 app.patch("/postchange", postChange);
