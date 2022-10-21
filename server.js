@@ -2,6 +2,8 @@ const http = require("http");
 const express = require("express");
 const dotenv = require("dotenv");
 dotenv.config();
+const bcrypt = require("bcryptjs"); // 암호화 모듈 리콰이어
+const jwt = require("jsonwebtoken"); // 토큰 발급
 
 const { DataSource } = require("typeorm");
 
@@ -25,7 +27,7 @@ app.use(express.json()); //req.body undefined 에러 해결(아마 express사용
 const createUser = async (req, res) => {
   //유저 회원가입 하기
   try {
-    let { email, nickname, password, profile_image, phoneNumber } =
+    const { email, nickname, password, profile_image, phoneNumber } =
       req.body.data;
 
     // const REQUIRED_KEYS = [
@@ -36,6 +38,13 @@ const createUser = async (req, res) => {
     //   phoneNumber,
     // ];
 
+    // REQUIRED_KEYS.map((key) => {
+    //   if (key.length === 0) {
+    //     // !key도 가능
+    //     throw new Error(`KEY_ERROR`);
+    //   }
+    // });
+
     const REQUIRED_KEYS = {
       email,
       nickname,
@@ -43,13 +52,8 @@ const createUser = async (req, res) => {
       profile_image,
       phoneNumber,
     };
-    // REQUIRED_KEYS.map((key) => {
-    //   if (key.length === 0) {
-    //     // !key도 가능
-    //     throw new Error(`KEY_ERROR`);
-    //   }
-    // });
-    Object.keys(REQUIRED_KEYS).Map((key) => {
+
+    Object.keys(REQUIRED_KEYS).flatMap((key) => {
       if (!REQUIRED_KEYS[key]) {
         throw new Error(`KEY_ERROR: ${key}`);
       }
@@ -72,23 +76,31 @@ const createUser = async (req, res) => {
     }
 
     //이미 DB에 존재하는 Email로는 가입할 수 없음
-    const mailInfo = await myDataSource.query(
-      `SELECT * FROM users WHERE email = "${email}"`
-    );
-    if (mailInfo) {
-      throw new Error("Can't sign up already exists email");
-    }
+    // const mailInfo = await myDataSource.query(
+    //   `SELECT * FROM users WHERE email = "${email}"`
+    // );
+    // if (!mailInfo) {
+    //   throw new Error("Can't sign up already exists email");
+    // }
+
+    const salt = bcrypt.genSaltSync(10);
+
+    const hashedPw = bcrypt.hashSync(password, salt);
 
     const userInfo = await myDataSource.query(
       `INSERT INTO users ( email, nickname, password, profile_image)
       VALUES (
-        "${email}", "${nickname}", "${password}", "${profile_image}"
+        "${email}", "${nickname}", "${hashedPw}", "${profile_image}"
         )`
     );
     res.status(200).json({ message: "userCreated" });
   } catch (err) {
-    console.log(err);
-    res.status(400).json({ message: err.message });
+    // console.log(err);
+    if (err.code === "ER_DUP_ENTRY") {
+      res.status(400).json({ message: "Can't sign up already exists email" });
+    } else {
+      res.status(400).json({ message: err.message });
+    }
   }
 };
 
@@ -118,7 +130,7 @@ const addPost = async (req, res) => {
     // console.log(postInfo);
     res.status(200).json({ message: "postCreated" });
   } catch (err) {
-    console.log(err); //터미널에서 확인하는 용도
+    // console.log(err); //터미널에서 확인하는 용도
     if (err.code === "ER_NO_REFERENCED_ROW_2") {
       res.status(400).json({ message: "YOU NEED SIGN UP" });
     }

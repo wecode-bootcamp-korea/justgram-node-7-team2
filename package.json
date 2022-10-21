@@ -2,7 +2,7 @@
   "name": "justgram_api",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "server.js",
   "dependencies": {
     "abbrev": "^1.1.1",
     "anymatch": "^3.1.2",
@@ -52,7 +52,7 @@
     "nodemon": "^2.0.20"
   },
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
