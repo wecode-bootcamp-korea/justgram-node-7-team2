@@ -104,6 +104,45 @@ const createUser = async (req, res) => {
   }
 };
 
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body.data;
+
+    const REQUIRED_KEYS = {
+      email,
+      password,
+    };
+
+    Object.keys(REQUIRED_KEYS).flatMap((key) => {
+      if (!REQUIRED_KEYS[key]) {
+        throw new Error(`KEY_ERROR: ${key}`);
+      }
+    });
+
+    //email이 존재하는지 확인하고 없으면 userDoesNotExist 에러 메시지를 보냄
+    const userInfo = myDataSource.query(`
+    SELECT * FROM users 
+    WHERE email ="${email}"`);
+    console.log(userInfo);
+    if (!userInfo) {
+      throw new Error("userDoesNotExist");
+    }
+
+    const loginInfo = myDataSource.query(`
+    SELECT id FROM users 
+    WHERE email ="${email}"`);
+    const token = jwt.sign(
+      { loginInfo, iat: Math.floor(Date.now() / 1000) - 30 },
+      "seonghee"
+    );
+    // console.log(loginInfo);
+
+    res.status(200).json({ message: "loginSuccess", token: token });
+  } catch {
+    res.status(404).json({ message: err.message });
+  }
+};
+
 const addPost = async (req, res) => {
   //게시글 Create
   try {
@@ -230,6 +269,7 @@ app.get("/", (req, res) => {
 });
 
 app.post("/signup", createUser);
+app.get("/login", loginUser);
 app.post("/addpost", addPost);
 app.get("/postlist", postList);
 app.patch("/postchange", postChange);
