@@ -5,6 +5,7 @@ dotenv.config();
 const bcrypt = require("bcryptjs"); // 암호화 모듈 리콰이어
 const jwt = require("jsonwebtoken"); // 토큰 발급
 const jwtSecret = process.env.JWT_SECRET;
+const { validateToken } = require("./middlewares/validateToken");
 
 const { DataSource } = require("typeorm");
 
@@ -20,6 +21,41 @@ const myDataSource = new DataSource({
 myDataSource.initialize().then(() => {
   console.log("Data Source has been initialized!");
 });
+
+// const validateToken = async (req, res, next) => {
+//   try {
+//     //get token from header
+//     const { token } = req.headers;
+
+//     if (!token) {
+//       const error = new Error("LOGIN_REQUIRED");
+//       error.statusCode = 401; //unauthorized
+//       throw error;
+//     }
+
+//     //if token ==> jwt.verify
+//     const user = jwt.verify(token, jwtSecret);
+
+//     //해당 Userid를 가진 유저가 실제로 존재하는지. 확인
+
+//     const [userData] = await myDataSource.query(`
+//     SELECT id, email FROM users WHERE id = ${user.id}
+//     `);
+
+//     if (!userData) {
+//       const error = new Error("USER_INVALID");
+//       error.statusCode = 404;
+//       throw error;
+//     }
+
+//     req.userInfo = userData;
+
+//     next();
+//   } catch (err) {
+//     console.log(err);
+//     res.status(err.statusCode).json({ message: err.message });
+//   }
+// };
 
 const app = express();
 app.use(express.json()); //req.body undefined 에러 해결(아마 express사용시 발생하는 에러인듯? 전에는 body-parser Install해서 해결한 기억이 있는데 그게 express 업데이트 되면서 express내장 기능으로 추가 된듯)
@@ -151,10 +187,7 @@ const loginUser = async (req, res) => {
       throw error;
     }
     // console.log(userInfo.id);
-    const token = jwt.sign(
-      { id: userInfo.id, iat: Math.floor(Date.now() / 1000) - 30 },
-      jwtSecret
-    );
+    const token = jwt.sign({ id: userInfo.id }, jwtSecret);
     // console.log(loginInfo);
 
     res.status(200).json({ message: "loginSuccess", token: token });
@@ -167,7 +200,7 @@ const loginUser = async (req, res) => {
 const addPost = async (req, res) => {
   //게시글 Create
   try {
-    const { token } = req.headers;
+    // const { token } = req.headers;
     const { title, content } = req.body.data; //receive data from client : title content
     const REQUIRED_KEYS = { title, content };
     Object.keys(REQUIRED_KEYS).map((key) => {
@@ -177,19 +210,10 @@ const addPost = async (req, res) => {
         throw error;
       }
     });
-    //get token from header
-    if (!token) {
-      const error = new Error("LOGIN_REQUIRED");
-      error.statusCode = 401; //unauthorized
-      throw error;
-    }
-    //if token ==> jwt.verify
-    const user = jwt.verify(token, jwtSecret);
-    const user_id = user.id;
 
     await myDataSource.query(`
     INSERT INTO postings (title, contents, user_id)
-    VALUES ("${title}", "${content}", "${user_id}")
+    VALUES ("${title}", "${content}", ${req.userInfo.id})
     `);
 
     res.status(200).json({ message: "postCreated" });
@@ -319,11 +343,11 @@ app.get("/", (req, res) => {
 
 app.post("/signup", createUser);
 app.post("/login", loginUser);
-app.post("/addpost", addPost);
-app.get("/postlist", postList);
-app.patch("/postchange", postChange);
-app.delete("/removepost", removePost);
-app.get("/userpostinfo", userPost);
+app.post("/addpost", validateToken, addPost);
+app.get("/postlist", validateToken, postList);
+app.patch("/postchange", validateToken, postChange);
+app.delete("/removepost", validateToken, removePost);
+app.get("/userpostinfo", validateToken, userPost);
 
 const server = http.createServer(app);
 
