@@ -235,18 +235,30 @@ const userPost = async (req, res) => {
 //게시글 정보 수정 CRUD중 UPDATE 부분
 const postChange = async (req, res) => {
   try {
-    const { id, postingId, content } = req.body.data;
+    const { token } = req.headers;
+    const { postingId, content } = req.body.data;
 
     const REQUIRED_KEYS = { id, postingId, content };
 
-    Object.keys(REQUIRED_KEYS).Map((key) => {
+    Object.keys(REQUIRED_KEYS).map((key) => {
       if (!REQUIRED_KEYS[key]) {
-        throw new Error(`KEY_ERROR: ${key}`);
+        const error = new Error(`KEY_ERROR: ${key}`);
+        error.statusCode = 400;
+        throw error;
       }
     });
 
+    if (!token) {
+      const error = new Error("LOGIN_REQUIRED");
+      error.statusCode = 401; //unauthorized
+      throw error;
+    }
+    //if token ==> jwt.verify
+    const user = jwt.verify(token, jwtSecret);
+    const user_id = user.id;
+
     const postChange = await myDataSource.query(`
-      UPDATE postings SET contents = "${content}" WHERE user_id = ${id} && id = ${postingId}
+      UPDATE postings SET contents = "${content}" WHERE user_id = ${user_id} && id = ${postingId}
     `);
 
     // console.log(postChange);
@@ -258,34 +270,46 @@ const postChange = async (req, res) => {
       postings.title as postingTitle,
       postings.contents as postingContent
       FROM users, postings
-      WHERE users.id = ${id} && postings.id = ${postingId}
+      WHERE users.id = ${user_id} && postings.id = ${postingId}
     `);
 
     res.status(201).json({ data: postChangeInfo });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(err.statusCode).json({ message: err.message });
   }
 };
 //유저가 작성한 해당 게시물 삭제 함수 CRUD중 DELETE 부분
 const removePost = async (req, res) => {
   try {
-    const { id, postingId } = req.body.data;
+    const { token } = req.headers;
+    const { postingId } = req.body.data;
 
-    const REQUIRED_KEYS = { id, postingId };
+    const REQUIRED_KEYS = { postingId };
 
-    Object.keys(REQUIRED_KEYS).Map((key) => {
+    Object.keys(REQUIRED_KEYS).map((key) => {
       if (!REQUIRED_KEYS[key]) {
-        throw new Error(`KEY_ERROR: ${key}`);
+        const error = new Error(`KEY_ERROR: ${key}`);
+        error.statusCode = 400; //unauthorized
+        throw error;
       }
     });
+    if (!token) {
+      const error = new Error("LOGIN_REQUIRED");
+      error.statusCode = 401; //unauthorized
+      throw error;
+    }
+    //if token ==> jwt.verify
+    const user = jwt.verify(token, jwtSecret);
+    const user_id = user.id;
+
     const removePost = myDataSource.query(`
     DELETE FROM postings
-    WHERE user_id = ${id} && id = ${postingId}
+    WHERE user_id = ${user_id} && id = ${postingId}
   `);
 
     res.status(200).json({ message: "postingDeleted" });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(err.statusCode).json({ message: err.message });
   }
 };
 
