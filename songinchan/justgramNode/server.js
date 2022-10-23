@@ -85,6 +85,12 @@ const userSignUp = async (req, res) => {
       throw error;
     }
 
+    // PW에 전화번호 포함시 가입불가
+    // const [_, firstNumber, lastNumber] = phone_number.split("-");
+    // if (password.includes(firstNumber) || password.includes(lastNumber)) {
+    //     throw new Error("PASSWORD_INCLUDING_PHONE_NUMBER!");
+    // }
+
     const [existingUser] = await myDataSource.query(`
       SELECT id, email, password 
       FROM users 
