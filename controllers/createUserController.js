@@ -20,6 +20,7 @@ const createUser = async (req, res) => {
       }
     });
     console.log("i am controller 2");
+    console.log(createUserService);
     const result = await createUserService.createUser(
       email,
       nickname,
