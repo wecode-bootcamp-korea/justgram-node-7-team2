@@ -35,155 +35,14 @@ console.log("DB_HOST:", process.env.DB_HOST);
 console.log("DB_USER:", process.env.DB_USER);
 console.log("DB_PASS:", process.env.DB_PASS);
 
+// Layered Pattern Module
+const userControllers = require("./controllers/userControllers");
+
 // --------------------------------------------------------------------------
 // server 테스트 url
 app.get("/ping", (req, res, next) => {
   res.json({ message: "/pong" });
 });
-
-// --------------------------------------------------------------------------
-// userList 가져오기
-const userList = async (req, res) => {
-  try {
-    const userData = await myDataSource.query(`SELECT * FROM users;`);
-
-    console.log("result : ", userData);
-
-    res.status(200).json({ users: userData });
-  } catch {
-    console.log(err);
-  }
-};
-
-// --------------------------------------------------------------------------
-// userCreated 회원 가입
-const userSignUp = async (req, res) => {
-  try {
-    const { nickname, email, password, profile_image } = req.body;
-
-    // Error Handling
-    const REQUIRE_KEYS = { email, password, nickname };
-    Object.keys(REQUIRE_KEYS).map((key) => {
-      if (!REQUIRE_KEYS[key]) {
-        const error = new Error(`KEY_ERROR ${key}`);
-        error.statusCode = 400;
-        throw error;
-
-        // throw new Error(`KEY_ERROR ${key}`); // 한줄로 쓸때
-      }
-    });
-
-    if (!email.includes("@") || !email.includes(".")) {
-      const error = new Error("EMAIL_INVALID");
-      error.statusCode = 400;
-      throw error;
-    }
-
-    if (password.length < 4) {
-      const error = new Error("PASSWORD_INVALID");
-      error.statusCode = 400;
-      throw error;
-    }
-
-    // PW에 전화번호 포함시 가입불가
-    // const [_, firstNumber, lastNumber] = phone_number.split("-");
-    // if (password.includes(firstNumber) || password.includes(lastNumber)) {
-    //     throw new Error("PASSWORD_INCLUDING_PHONE_NUMBER!");
-    // }
-
-    const [existingUser] = await myDataSource.query(`
-      SELECT id, email, password 
-      FROM users 
-      WHERE email = '${email}'
-      ;`);
-
-    if (existingUser) {
-      const error = new Error("EXISTING_USER");
-      error.statusCode = 404;
-      console.log("existingUser info : ", existingUser);
-      throw error;
-    }
-
-    // Bcrypt 암호화
-    const salt = bcrypt.genSaltSync();
-    const hashedPW = bcrypt.hashSync(password, salt);
-    console.log("hashedPW :", hashedPW);
-
-    await myDataSource.query(`
-    INSERT INTO users (nickname, email, password, profile_image)
-    VALUES 
-      ('${nickname}', '${email}', '${hashedPW}', '${profile_image}');
-    `);
-
-    const checkSignUp = await myDataSource.query(`
-    select * from users where nickname='${nickname}';
-    `);
-
-    console.log(checkSignUp);
-    res.status(201).json({ message: "userCreated" });
-  } catch (err) {
-    console.log(err);
-    res.status(err.statusCode).json({ message: err.message });
-  }
-};
-
-// --------------------------------------------------------------------------
-//  /signIn 유저 로그인
-const userSignIn = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    // Error Handling
-    const REQUIRE_KEYS = { email, password };
-    Object.keys(REQUIRE_KEYS).map((key) => {
-      if (!REQUIRE_KEYS[key]) {
-        const error = new Error(`KEY_ERROR ${key}`);
-        error.statusCode = 400;
-        throw error;
-      }
-    });
-
-    if (!email.includes("@") || !email.includes(".")) {
-      const error = new Error("EMAIL)INVALID");
-      error.statusCode = 400;
-      throw error;
-    }
-
-    if (password.length < 4) {
-      const error = new Error("PASSWORD_INVALID");
-      error.statusCode = 400;
-      throw error;
-    }
-
-    const [existingUser] = await myDataSource.query(`
-      SELECT id, email, password 
-      FROM users 
-      WHERE email = '${email}'
-      ;`);
-
-    if (!existingUser) {
-      const error = new Error("NOT_EXISTING_USER");
-      error.statusCode = 404;
-      throw error;
-    }
-    // Bcrypt 암호화 PASSWORD 검증
-    const checkPW = bcrypt.compareSync(password, existingUser.password);
-    if (!checkPW) {
-      const error = new Error("WRONG_PASSWORD");
-      error.statusCode = 404;
-      throw error;
-    }
-
-    // token 발행
-    const token = jwt.sign({ id: existingUser.id }, process.env.SECRET_KEY);
-
-    console.log([existingUser, token]);
-    res.status(200).json({ message: "userLogIn_Success", token: token });
-  } catch (err) {
-    console.log(err);
-    res.status(err.statusCode).json({ message: err.message });
-  }
-};
 
 // --------------------------------------------------------------------------
 //  /posting, addPost 포스트 게시하기
@@ -391,14 +250,14 @@ async function deletePost(req, res) {
 
 // --------------------------------------------------------------------------
 // url / http 메소드 정리
-app.get("/users", validateToken, userList);
-app.post("/signup", userSignUp);
+app.get("/users", validateToken, userControllers.userList);
+app.post("/signup", userControllers.signUp);
 app.post("/post", validateToken, addPost);
 app.get("/post", validateToken, postList);
 app.post("/post/user", validateToken, userPostList);
 app.patch("/post", validateToken, updatePost);
 app.delete("/post", validateToken, deletePost);
-app.post("/signin", userSignIn);
+app.post("/signin", userControllers.signIn);
 
 const server = http.createServer(app);
 
