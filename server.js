@@ -2,144 +2,15 @@ const http = require("http");
 const express = require("express");
 const dotenv = require("dotenv");
 dotenv.config();
-const bcrypt = require("bcryptjs"); // 암호화 모듈 리콰이어
 const jwt = require("jsonwebtoken"); // 토큰 발급
 const jwtSecret = process.env.JWT_SECRET;
 const { validateToken } = require("./middlewares/validateToken");
 
-const { DataSource } = require("typeorm");
-
-const myDataSource = new DataSource({
-  type: process.env.TYPEORM_CONNECTION,
-  host: process.env.TYPEORM_HOST,
-  port: process.env.TYPEORM_PORT,
-  username: process.env.TYPEORM_USERNAME,
-  password: process.env.TYPEORM_PASSWORD,
-  database: process.env.TYPEORM_DATABASE,
-});
-
-myDataSource.initialize().then(() => {
-  console.log("Data Source has been initialized!");
-});
-
-// const validateToken = async (req, res, next) => {
-//   try {
-//     //get token from header
-//     const { token } = req.headers;
-
-//     if (!token) {
-//       const error = new Error("LOGIN_REQUIRED");
-//       error.statusCode = 401; //unauthorized
-//       throw error;
-//     }
-
-//     //if token ==> jwt.verify
-//     const user = jwt.verify(token, jwtSecret);
-
-//     //해당 Userid를 가진 유저가 실제로 존재하는지. 확인
-
-//     const [userData] = await myDataSource.query(`
-//     SELECT id, email FROM users WHERE id = ${user.id}
-//     `);
-
-//     if (!userData) {
-//       const error = new Error("USER_INVALID");
-//       error.statusCode = 404;
-//       throw error;
-//     }
-
-//     req.userInfo = userData;
-
-//     next();
-//   } catch (err) {
-//     console.log(err);
-//     res.status(err.statusCode).json({ message: err.message });
-//   }
-// };
+const createUserController = require("./controllers/createUserController");
 
 const app = express();
 app.use(express.json()); //req.body undefined 에러 해결(아마 express사용시 발생하는 에러인듯? 전에는 body-parser Install해서 해결한 기억이 있는데 그게 express 업데이트 되면서 express내장 기능으로 추가 된듯)
 // app.use(express.urlencoded({ extended: false }));
-
-const createUser = async (req, res) => {
-  //유저 회원가입 하기
-  try {
-    const { email, nickname, password, profile_image, phoneNumber } =
-      req.body.data;
-
-    // const REQUIRED_KEYS = [
-    //   email,
-    //   nickname,
-    //   password,
-    //   profile_image,
-    //   phoneNumber,
-    // ];
-
-    // REQUIRED_KEYS.map((key) => {
-    //   if (key.length === 0) {
-    //     // !key도 가능
-    //     throw new Error(`KEY_ERROR`);
-    //   }
-    // });
-
-    const REQUIRED_KEYS = {
-      email,
-      nickname,
-      password,
-      profile_image,
-      phoneNumber,
-    };
-
-    Object.keys(REQUIRED_KEYS).map((key) => {
-      if (!REQUIRED_KEYS[key]) {
-        throw new Error(`KEY_ERROR: ${key}`);
-      }
-    });
-
-    if (!email.includes("@") || !email.includes(".")) {
-      // 이메일에 @ or . 이 포함되지 않으면 error를 날린다.
-      throw new Error("Email-Invalid"); // throw new Error가 자세히 어떻게 동작이 되는지?
-    }
-
-    if (password.length < 10) {
-      //비밀번호가 10자리 이상만 가능 아니면 error 날림
-      throw new Error("Password-Invalid");
-    }
-
-    const [_, frontNum, backNum] = phoneNumber.split("-");
-    if (password.includes(frontNum || backNum)) {
-      // 핸드폰 번호가 비밀번호에 포함되어있을때 error 발생
-      throw new Error("Phone number is included in the password");
-    }
-
-    //이미 DB에 존재하는 Email로는 가입할 수 없음
-    // const mailInfo = await myDataSource.query(
-    //   `SELECT * FROM users WHERE email = "${email}"`
-    // );
-    // if (!mailInfo) {
-    //   throw new Error("Can't sign up already exists email");
-    // }
-
-    const salt = bcrypt.genSaltSync();
-
-    const hashedPw = bcrypt.hashSync(password, salt);
-
-    const userInfo = await myDataSource.query(
-      `INSERT INTO users ( email, nickname, password, profile_image)
-      VALUES (
-        "${email}", "${nickname}", "${hashedPw}", "${profile_image}"
-        )`
-    );
-    res.status(200).json({ message: "userCreated" });
-  } catch (err) {
-    // console.log(err);
-    if (err.code === "ER_DUP_ENTRY") {
-      res.status(400).json({ message: "Can't sign up already exists email" });
-    } else {
-      res.status(400).json({ message: err.message });
-    }
-  }
-};
 
 const loginUser = async (req, res) => {
   try {
@@ -341,7 +212,7 @@ app.get("/", (req, res) => {
   res.json({ message: "success" });
 });
 
-app.post("/signup", createUser);
+app.post("/signup", createUserController.createUser);
 app.post("/login", loginUser);
 app.post("/addpost", validateToken, addPost);
 app.get("/postlist", validateToken, postList);

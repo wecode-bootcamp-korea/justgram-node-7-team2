@@ -1,6 +1,16 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+const express = require("express");
+const cors = require("cors");
+
+const app = express();
+
+app.use(cors());
+// cors 설정들이 적용됩니다.
+// 세션때 자세히 다룰 예정입니다.
+
+app.listen(10010);
 // console.log(bcrypt);
 
 // const pw = "1234";
