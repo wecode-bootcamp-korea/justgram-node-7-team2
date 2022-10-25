@@ -15,7 +15,7 @@ const httpsServer = https.createServer(options, app);
 
 const start = () => {
   try {
-    httpsServer.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(
         "start server http://localhost:3000/ https://localhost:3000/"
       );
