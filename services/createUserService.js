@@ -9,7 +9,6 @@ const createUser = async (
   profile_image,
   phoneNumber
 ) => {
-  console.log("i am service 1");
   if (!email.includes("@") || !email.includes(".")) {
     // 이메일에 @ or . 이 포함되지 않으면 error를 날린다.
     throw new Error("Email-Invalid"); // throw new Error가 자세히 어떻게 동작이 되는지?
@@ -36,7 +35,6 @@ const createUser = async (
     hashedPw,
     profile_image
   );
-  console.log("i am service 2");
   return createUser;
 };
 

@@ -2,7 +2,6 @@ const createUserService = require("../services/createUserService");
 
 const createUser = async (req, res) => {
   try {
-    console.log("i am controller 1");
     const { email, nickname, password, profile_image, phoneNumber } =
       req.body.data;
 
@@ -19,8 +18,6 @@ const createUser = async (req, res) => {
         throw new Error(`KEY_ERROR: ${key}`);
       }
     });
-    console.log("i am controller 2");
-    console.log(createUserService);
     const result = await createUserService.createUser(
       email,
       nickname,
@@ -28,7 +25,7 @@ const createUser = async (req, res) => {
       profile_image,
       phoneNumber
     );
-    console.log("i am controller 3");
+
     res.status(200).json({ message: "userCreated" });
   } catch (err) {
     console.log(err);

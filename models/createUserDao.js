@@ -14,7 +14,6 @@ myDataSource.initialize().then(() => {
 });
 
 const createUser = async (email, nickname, hashedPw, profile_image) => {
-  console.log("i am DAO 1");
   await myDataSource.query(
     `INSERT INTO users ( email, nickname, password, profile_image)
     VALUES (
