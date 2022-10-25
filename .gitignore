@@ -2,3 +2,6 @@
 package-lock.json
 
 .env
+
+cert.pem
+key.pem
