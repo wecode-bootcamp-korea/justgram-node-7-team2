@@ -54,10 +54,10 @@ const signIn = async (req, res) => {
 
 const userList = async (req, res) => {
   try {
-    const userListData = await userService.userList;
-    console.log("result : ", userListData);
+    const data = await userService.userList();
+    console.log("Controllers result : ", data);
 
-    res.status(200).json({ users: userListData });
+    res.status(200).json({ userData: data });
   } catch (err) {
     console.log(err);
     res.status(err.statusCode).json({ message: err.message });

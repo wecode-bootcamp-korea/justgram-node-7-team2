@@ -75,9 +75,11 @@ const signIn = async (email, password) => {
   console.log("existingUser = ", existingUser, "token = ", token);
 };
 
-const userList = userDao.findUserList;
-console.log("service userList =", userList);
-console.log("userList : ", userList);
+const userList = async () => {
+  const result = await userDao.findUserList();
+  console.log("service userList =", result);
+  return result;
+};
 
 module.exports = {
   signUp,
