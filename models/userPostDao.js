@@ -15,13 +15,14 @@ myDataSource.initialize().then(() => {
 
 const userPost = async (id) => {
   const listInfo = await myDataSource.query(`SELECT
-  postings.user_id,
+  users.id as userId,
   users.profile_image,
   posting_images.posting_id,
-  posting_images.image_url,
-  postings.contents
-  FROM users, posting_images
-  INNER JOIN postings ON ${id} = postings.user_id`);
+  postings.id as postingId,
+  postings.contents as postingContent,
+  posting_images.image_url as postingImageUrl
+  FROM users, postings, posting_images
+  WHERE users.id = 1 && postings.user_id = users.id && postings.id = posting_images.posting_id`);
 
   return listInfo;
 };
