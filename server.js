@@ -3,7 +3,7 @@ const https = require("https");
 const fs = require("fs");
 const app = require("./app");
 
-const PORT = 3000;
+const PORT = process.env.PORT;
 
 const options = {
   key: fs.readFileSync("./key.pem", "utf-8"),
