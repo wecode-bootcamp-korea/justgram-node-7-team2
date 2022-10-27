@@ -3,7 +3,6 @@ const cors = require("cors");
 const morgan = require("morgan");
 const dotenv = require("dotenv");
 dotenv.config();
-const { validateToken } = require("./middlewares/validateToken");
 const router = require("./routes");
 
 const app = express();

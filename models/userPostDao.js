@@ -1,7 +1,8 @@
 const myDataSource = require("./index");
 
 const userPost = async (id) => {
-  const listInfo = await myDataSource.query(`
+  let listInfo = await myDataSource.query(
+    `
   SELECT
     users.id as userId,
     users.profile_image as userProfileImage,
@@ -15,8 +16,13 @@ const userPost = async (id) => {
   FROM users
   JOIN postings ON postings.user_id = users.id
   JOIN posting_images ON postings.id = posting_images.posting_id
-  WHERE users.id = ${id}
-  GROUP BY users.id`);
+  WHERE postings.user_id = ${id}
+  GROUP BY users.id`
+  );
+
+  listInfo = [...listInfo].map((item) => {
+    return { ...item, postings: JSON.parse(item.postings) };
+  });
 
   return listInfo;
 };

@@ -12,6 +12,6 @@ router.post("/addpost", validateToken, addPostController.addPost);
 router.get("/postlist", validateToken, postListController.postList);
 router.patch("/postchange", validateToken, postChangeController.postChange);
 router.delete("/removepost", validateToken, removePostController.removePost);
-router.get("/userpostinfo", validateToken, userPostController.userPost);
+router.get("/userpostinfo", userPostController.userPost);
 
 module.exports = router;
