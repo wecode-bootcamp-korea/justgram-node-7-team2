@@ -7,8 +7,6 @@ dotenv.config();
 const router = require("./routers");
 const app = express();
 
-const validationRule = require("./validationRule"); // 검증키 모음(진행중)
-
 app.use(express.json());
 app.use(morgan("combined"));
 app.use(cors());

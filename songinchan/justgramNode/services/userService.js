@@ -1,17 +1,37 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+const validationRule = require("../middlewares/validationRule"); // 검증키 모음(진행중)
+
 const userDao = require("../models/userDao");
 
 const signUp = async (email, password, nickname, profile_image) => {
-  if (!email.includes("@") || !email.includes(".")) {
-    const error = new Error("EMAIL_INVALID");
+  // if (!email.includes("@") || !email.includes(".")) {
+  //   const error = new Error("EMAIL_INVALID");
+  //   error.statusCode = 400;
+  //   throw error;
+  // }
+  // 아래 정규식으로 대체
+
+  if (!validationRule.EMAIL_VALIDATION.test(email)) {
+    const error = new Error(
+      "EMAIL_INVALID_VALIDATION_RULES / 이메일 형식과 맞지 않습니다. 정신 차리고 다시 넣어주세요!! "
+    );
     error.statusCode = 400;
     throw error;
   }
 
-  if (password.length < 4) {
-    const error = new Error("PASSWORD_INVALID");
+  // if (password.length < 4) {
+  //   const error = new Error("PASSWORD_INVALID");
+  //   error.statusCode = 400;
+  //   throw error;
+  // }
+  // 아래 정규식으로 대체
+
+  if (!validationRule.PASSWORD_VALIDATION.test(password)) {
+    const error = new Error(
+      "PASSWORD_INVALID / 패스워드는 대문자+소문자+숫자 조합이어야만 합니다. / 8자 이상만 받습니다. / 특수기호는 안받습니다 ^^;;"
+    );
     error.statusCode = 400;
     throw error;
   }
@@ -42,7 +62,7 @@ const signUp = async (email, password, nickname, profile_image) => {
 
 const signIn = async (email, password) => {
   if (!email.includes("@") || !email.includes(".")) {
-    const error = new Error("EMAIL)INVALID");
+    const error = new Error("EMAIL_INVALID");
     error.statusCode = 400;
     throw error;
   }
@@ -71,8 +91,8 @@ const signIn = async (email, password) => {
 
   // token 발행
   const token = jwt.sign({ id: existingUser.id }, process.env.SECRET_KEY);
-
   console.log("existingUser = ", existingUser, "token = ", token);
+  return token;
 };
 
 const userList = async () => {
