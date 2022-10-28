@@ -62,18 +62,36 @@ const updatePost = async (req, res) => {
     const { id, contents } = req.body;
     const user_id = req.userInfo[0].id;
 
+    const REQUIRE_KEYS = { id, contents };
+    Object.keys(REQUIRE_KEYS).map((key) => {
+      if (!REQUIRE_KEYS[key]) {
+        const error = new Error(`KEY_ERROR ${key}`);
+        error.statusCode = 400;
+        throw error;
+      }
+    });
+
     const result = await postService.updatePost(user_id, id, contents);
 
     console.log(result);
     res.status(201).json({ data: result });
   } catch (err) {
     console.log(err);
+    res.status(err.statusCode).json({ message: err.message });
   }
 };
 
 const deletePost = async (req, res) => {
   try {
     const { id } = req.body;
+    const REQUIRE_KEYS = { id };
+    Object.keys(REQUIRE_KEYS).map((key) => {
+      if (!REQUIRE_KEYS[key]) {
+        const error = new Error(`KEY_ERROR ${key}`);
+        error.statusCode = 400;
+        throw error;
+      }
+    });
 
     const result = await postService.deletePost(id);
 
