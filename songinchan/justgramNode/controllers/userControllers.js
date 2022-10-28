@@ -54,7 +54,9 @@ const signIn = async (req, res) => {
 
 const userList = async (req, res) => {
   try {
-    const data = await userService.userList();
+    const user_id = req.userInfo[0].id;
+
+    const data = await userService.userList(user_id);
     console.log("Controllers result : ", data);
 
     res.status(200).json({ userData: data });

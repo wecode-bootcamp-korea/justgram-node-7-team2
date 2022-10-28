@@ -10,11 +10,11 @@ var corsOptions = {
 
 const createApp = () => {
   const app = express();
+  app.use(cors(corsOptions));
 
   app.use(express.json());
   app.use(router);
   app.use(morgan("combined"));
-  app.use(cors(corsOptions));
 
   return app;
 };

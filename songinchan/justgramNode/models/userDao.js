@@ -33,8 +33,11 @@ const createUser = async (nickname, email, hashedPW, profile_image) => {
   console.log("checkSignUp : ", checkSignUp);
 };
 
-const findUserList = async () => {
-  const userData = await myDataSource.query(`SELECT * FROM users;`);
+const findUserList = async (user_id) => {
+  // const userData = await myDataSource.query(`SELECT * FROM users;`);
+  const userData = await myDataSource.query(
+    `SELECT id, email FROM users WHERE id = ${user_id};`
+  );
   console.log("userDao userData =", userData);
   return userData;
 };

@@ -61,17 +61,25 @@ const signUp = async (email, password, nickname, profile_image) => {
 };
 
 const signIn = async (email, password) => {
-  if (!email.includes("@") || !email.includes(".")) {
-    const error = new Error("EMAIL_INVALID");
+  // if (!email.includes("@") || !email.includes(".")) {
+  //   const error = new Error("EMAIL_INVALID");
+  //   error.statusCode = 400;
+  //   throw error;
+  // }
+
+  if (!validationRule.EMAIL_VALIDATION.test(email)) {
+    const error = new Error(
+      "EMAIL_INVALID_VALIDATION_RULES / 이메일 형식과 맞지 않습니다. 정신 차리고 다시 넣어주세요!! "
+    );
     error.statusCode = 400;
     throw error;
   }
 
-  if (password.length < 4) {
-    const error = new Error("PASSWORD_INVALID");
-    error.statusCode = 400;
-    throw error;
-  }
+  // if (password.length < 4) {
+  //   const error = new Error("PASSWORD_INVALID");
+  //   error.statusCode = 400;
+  //   throw error;
+  // }
 
   const [existingUser] = await userDao.findUserByEmail(email);
 
@@ -95,8 +103,8 @@ const signIn = async (email, password) => {
   return token;
 };
 
-const userList = async () => {
-  const result = await userDao.findUserList();
+const userList = async (user_id) => {
+  const result = await userDao.findUserList(user_id);
   console.log("service userList =", result);
   return result;
 };
