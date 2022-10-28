@@ -11,7 +11,7 @@ const myDataSource = new DataSource({
 });
 
 myDataSource.initialize().then(() => {
-  console.log("validateToken_Data Source has been initialized!");
+  console.log("validateToken_Data - Source has been initialized!");
 });
 
 const validateToken = async (req, res, next) => {

@@ -8,7 +8,7 @@ const myDataSource = new DataSource({
   database: process.env.TYPEORM_DATABASE,
 });
 myDataSource.initialize().then(() => {
-  console.log("Data Source has been initialized!");
+  console.log("userDao - Data Source has been initialized!");
 });
 
 const findUserByEmail = async (email) => {

@@ -11,7 +11,7 @@ const signUp = async (email, password, nickname, profile_image) => {
   //   error.statusCode = 400;
   //   throw error;
   // }
-  // 아래 정규식으로 대체
+  // 아래 validationRule.EMAIL_VALIDATION.test(email) 정규식으로 대체
 
   if (!validationRule.EMAIL_VALIDATION.test(email)) {
     const error = new Error(
@@ -26,7 +26,7 @@ const signUp = async (email, password, nickname, profile_image) => {
   //   error.statusCode = 400;
   //   throw error;
   // }
-  // 아래 정규식으로 대체
+  // 아래 validationRule.PASSWORD_VALIDATION.test 정규식으로 대체
 
   if (!validationRule.PASSWORD_VALIDATION.test(password)) {
     const error = new Error(
