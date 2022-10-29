@@ -33,12 +33,26 @@ const createUser = async (nickname, email, hashedPW, profile_image) => {
   console.log("checkSignUp : ", checkSignUp);
 };
 
-const findUserList = async (user_id) => {
+const findUserList = async () => {
   // const userData = await myDataSource.query(`SELECT * FROM users;`);
-  const userData = await myDataSource.query(
-    `SELECT id, email FROM users WHERE id = ${user_id};`
-  );
+  const userData = await myDataSource.query(`
+    SELECT id, nickname, email, profile_image 
+    FROM users
+    order by id ASC 
+    `);
   console.log("userDao userData =", userData);
+  return userData;
+};
+
+const getMe = async (user_id) => {
+  // const userData = await myDataSource.query(`SELECT * FROM users;`);
+  const userData = await myDataSource.query(`
+    SELECT id, nickname, email, profile_image 
+    FROM users
+    WHERE id='${user_id}'
+    `);
+  // console.log("userDao userData =", userData);
+  // console.log("userDao userData =", user_id);
   return userData;
 };
 
@@ -46,4 +60,5 @@ module.exports = {
   findUserByEmail,
   createUser,
   findUserList,
+  getMe,
 };

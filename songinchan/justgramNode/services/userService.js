@@ -103,9 +103,15 @@ const signIn = async (email, password) => {
   return token;
 };
 
-const userList = async (user_id) => {
-  const result = await userDao.findUserList(user_id);
+const userList = async () => {
+  const result = await userDao.findUserList();
   console.log("service userList =", result);
+  return result;
+};
+
+const getMe = async (user_id) => {
+  const result = await userDao.getMe(user_id);
+  // console.log("service userList =", result);
   return result;
 };
 
@@ -113,4 +119,5 @@ module.exports = {
   signUp,
   signIn,
   userList,
+  getMe,
 };

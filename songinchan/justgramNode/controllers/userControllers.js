@@ -54,10 +54,23 @@ const signIn = async (req, res) => {
 
 const userList = async (req, res) => {
   try {
+    const data = await userService.userList();
+    console.log("Controllers result : ", data);
+
+    res.status(200).json({ userData: data });
+  } catch (err) {
+    console.log(err);
+    res.status(err.statusCode).json({ message: err.message });
+  }
+};
+
+const getMe = async (req, res) => {
+  try {
     const user_id = req.userInfo[0].id;
 
-    const data = await userService.userList(user_id);
-    console.log("Controllers result : ", data);
+    const data = await userService.getMe(user_id);
+    // console.log("Controllers result : ", data);
+    console.log("Controllers result : ", user_id);
 
     res.status(200).json({ userData: data });
   } catch (err) {
@@ -70,4 +83,5 @@ module.exports = {
   signUp,
   signIn,
   userList,
+  getMe,
 };
