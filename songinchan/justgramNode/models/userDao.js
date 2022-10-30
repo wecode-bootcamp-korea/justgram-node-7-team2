@@ -47,13 +47,13 @@ const findUserList = async () => {
 const getMe = async (user_id) => {
   // const userData = await myDataSource.query(`SELECT * FROM users;`);
   const userData = await myDataSource.query(`
-    SELECT id, nickname, email, profile_image 
+    SELECT id, email
     FROM users
     WHERE id='${user_id}'
     `);
   // console.log("userDao userData =", userData);
   // console.log("userDao userData =", user_id);
-  return userData;
+  return userData[0];
 };
 
 module.exports = {

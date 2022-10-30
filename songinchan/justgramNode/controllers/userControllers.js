@@ -70,9 +70,9 @@ const getMe = async (req, res) => {
 
     const data = await userService.getMe(user_id);
     // console.log("Controllers result : ", data);
-    console.log("Controllers result : ", user_id);
+    console.log("Controllers result : ", data);
 
-    res.status(200).json({ userData: data });
+    res.status(200).json({ data });
   } catch (err) {
     console.log(err);
     res.status(err.statusCode).json({ message: err.message });
