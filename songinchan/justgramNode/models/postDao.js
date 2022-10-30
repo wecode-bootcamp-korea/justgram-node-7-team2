@@ -150,10 +150,26 @@ const deletePost = async (id) => {
   return check;
 };
 
+const readPost = async (id) => {
+  const data = await myDataSource.query(`
+    update postings 
+    set view_cnt = view_cnt + 1
+    where id = '${id}'
+  `);
+
+  const result = await myDataSource.query(`
+  SELECT * from postings
+  where id = '${id}'
+  `);
+
+  return result;
+};
+
 module.exports = {
   createPost,
   postList,
   userPostList,
   updatePost,
   deletePost,
+  readPost,
 };

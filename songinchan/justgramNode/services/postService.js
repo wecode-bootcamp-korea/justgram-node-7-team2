@@ -35,10 +35,16 @@ const deletePost = async (id) => {
   return result;
 };
 
+const readPost = async (id) => {
+  const result = await postDao.readPost(id);
+  return result;
+};
+
 module.exports = {
   addPost,
   postList,
   userPostList,
   updatePost,
   deletePost,
+  readPost,
 };

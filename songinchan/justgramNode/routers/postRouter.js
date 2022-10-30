@@ -9,5 +9,6 @@ router.get("/postlist", validateToken, postControllers.postList);
 router.post("/userpostlist", validateToken, postControllers.userPostList);
 router.patch("/updatepost", validateToken, postControllers.updatePost);
 router.delete("/deletepost", validateToken, postControllers.deletePost);
+router.get("/readpost", validateToken, postControllers.readPost);
 
 module.exports = router;

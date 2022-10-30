@@ -103,10 +103,34 @@ const deletePost = async (req, res) => {
   }
 };
 
+const readPost = async (req, res) => {
+  try {
+    const { id } = req.body;
+    // const user_id = req.userInfo[0].id;
+    const REQUIRE_KEYS = { id };
+    Object.keys(REQUIRE_KEYS).map((key) => {
+      if (!REQUIRE_KEYS[key]) {
+        const error = new Error(`KEY_ERROR ${key}`);
+        error.statusCode = 400;
+        throw error;
+      }
+    });
+
+    const result = await postService.readPost(id);
+    console.log("posting id = ", id);
+    console.log(result);
+    res.status(200).json({ data: result });
+  } catch (err) {
+    console.log(err);
+    res.status(err.statusCode).json({ message: err.message });
+  }
+};
+
 module.exports = {
   addPost,
   postList,
   userPostList,
   updatePost,
   deletePost,
+  readPost,
 };

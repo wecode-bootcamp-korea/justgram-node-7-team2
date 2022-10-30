@@ -8,5 +8,12 @@ CREATE TABLE IF NOT EXISTS postings
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
+ALTER table postings 
+ADD view_cnt 
+NUMERIC default 0 not null
+
 -- migrate:down
 DROP TABLE postings;
+
+ALTER table postings 
+DROP view_cnt 
